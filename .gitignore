@@ -1,0 +1,8 @@
+Library/
+Logs/
+obj/
+Temp/
+/Assembly-CSharp.csproj
+/MCPForUnity.Editor.csproj
+/MCPForUnity.Runtime.csproj
+/SurvivorsTutorial-StarterProject.sln
