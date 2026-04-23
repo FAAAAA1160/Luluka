@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 2750753569802728155}
   - component: {fileID: 7821999818094546905}
   - component: {fileID: 955879127058653209}
+  - component: {fileID: 1038844112397614306}
   m_Layer: 0
   m_Name: "\u9732\u9732\u5361"
   m_TagString: Untagged
@@ -282,6 +283,38 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.01, y: 1.51}
   m_EdgeRadius: 0
+--- !u!114 &1038844112397614306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8742168083127075881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eaf1907df7ed98448ab8ecbb274d3983, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LULUKA.PlayerController
+  walkSpeed: 3
+  runSpeed: 6
+  jumpForce: 8
+  doubleTapTime: 0.3
+  groundCheck: {fileID: 0}
+  groundCheckRadius: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  maxAirAttacks: 1
+  speedParam: Speed
+  isGroundedParam: IsGrounded
+  jumpParam: Jump
+  isRunningParam: IsRunning
+  velocityYParam: VelocityY
+  isTransformedParam: IsTransformed
+  transformParam: Transform
+  attackParam: Attack
+  releaseAttackParam: ReleaseAttack
+  transformedLayerIndex: 1
 --- !u!1 &9029807214511547032
 GameObject:
   m_ObjectHideFlags: 0

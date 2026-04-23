@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace LULUKA
 {
+    [RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SpriteRenderer))]
     public class PlayerController : MonoBehaviour
     {
         [Header("移动参数")]
@@ -20,17 +21,6 @@ namespace LULUKA
         [Header("空中攻击设置")]
         [SerializeField] private int maxAirAttacks = 1;
         
-        [Header("动画参数名称")]
-        [SerializeField] private string speedParam = "Speed";
-        [SerializeField] private string isGroundedParam = "IsGrounded";
-        [SerializeField] private string jumpParam = "Jump";
-        [SerializeField] private string isRunningParam = "IsRunning";
-        [SerializeField] private string velocityYParam = "VelocityY";
-        [SerializeField] private string isTransformedParam = "IsTransformed";
-        [SerializeField] private string transformParam = "Transform";
-        [SerializeField] private string attackParam = "Attack";
-        [SerializeField] private string releaseAttackParam = "ReleaseAttack";
-        
         [Header("动画层索引")]
         [SerializeField] private int transformedLayerIndex = 1;
         
@@ -40,45 +30,33 @@ namespace LULUKA
         
         private float horizontalInput;
         private bool isGrounded;
-        private bool wasGrounded;
-        private bool canJump = true;
-        private bool isRunning = false;
+        private bool isRunning;
         
-        private float lastTapTimeA = 0f;
-        private float lastTapTimeD = 0f;
-        private bool isHoldingA = false;
-        private bool isHoldingD = false;
+        private float lastTapTimeA;
+        private float lastTapTimeD;
+        private bool isHoldingA;
+        private bool isHoldingD;
         
-        private bool isTransformed = false;
-        private bool isTransforming = false;
-        private bool isCharging = false;
-        private int airAttackCount = 0;
+        private bool isTransformed;
+        private bool isTransforming;
+        private bool isCharging;
+        private int airAttackCount;
         
-        private int speedHash;
-        private int isGroundedHash;
-        private int jumpHash;
-        private int isRunningHash;
-        private int velocityYHash;
-        private int isTransformedHash;
-        private int transformHash;
-        private int attackHash;
-        private int releaseAttackHash;
+        private readonly int  speedHash = Animator.StringToHash("Speed");
+        private readonly int  isGroundedHash = Animator.StringToHash("IsGrounded");
+        private readonly int  jumpHash = Animator.StringToHash("Jump");
+        private readonly int  isRunningHash = Animator.StringToHash("IsRunning");
+        private readonly int  velocityYHash = Animator.StringToHash("VelocityY");
+        private readonly int  isTransformedHash = Animator.StringToHash("IsTransformed");
+        private readonly int  transformHash = Animator.StringToHash("Transform");
+        private readonly int  attackHash = Animator.StringToHash("Attack");
+        private readonly int  releaseAttackHash = Animator.StringToHash("ReleaseAttack");
         
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
             animator = GetComponent<Animator>();
             spriteRenderer = GetComponent<SpriteRenderer>();
-            
-            speedHash = Animator.StringToHash(speedParam);
-            isGroundedHash = Animator.StringToHash(isGroundedParam);
-            jumpHash = Animator.StringToHash(jumpParam);
-            isRunningHash = Animator.StringToHash(isRunningParam);
-            velocityYHash = Animator.StringToHash(velocityYParam);
-            isTransformedHash = Animator.StringToHash(isTransformedParam);
-            transformHash = Animator.StringToHash(transformParam);
-            attackHash = Animator.StringToHash(attackParam);
-            releaseAttackHash = Animator.StringToHash(releaseAttackParam);
         }
         
         private void Start()
@@ -107,27 +85,41 @@ namespace LULUKA
             
             if (isTransformed && !isTransforming)
             {
-                if (isGrounded)
-                {
-                    if (Input.GetKeyDown(KeyCode.J) && !isCharging)
-                    {
-                        StartCharge();
-                    }
-                    
-                    if (Input.GetKeyUp(KeyCode.J) && isCharging)
-                    {
-                        ReleaseAttack();
-                    }
-                }
-                else
-                {
-                    if (Input.GetKeyDown(KeyCode.J) && airAttackCount < maxAirAttacks)
-                    {
-                        AirAttack();
-                    }
-                }
+                HandleAttackInput();
             }
             
+            HandleMovementInput();
+            
+            if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+            {
+                Jump();
+            }
+        }
+        
+        private void HandleAttackInput()
+        {
+            if (isGrounded)
+            {
+                if (Input.GetKeyDown(KeyCode.J) && !isCharging)
+                {
+                    isCharging = true;
+                    animator.SetTrigger(attackHash);
+                }
+                else if (Input.GetKeyUp(KeyCode.J) && isCharging)
+                {
+                    isCharging = false;
+                    animator.SetTrigger(releaseAttackHash);
+                }
+            }
+            else if (Input.GetKeyDown(KeyCode.J) && airAttackCount < maxAirAttacks)
+            {
+                airAttackCount++;
+                animator.SetTrigger(attackHash);
+            }
+        }
+        
+        private void HandleMovementInput()
+        {
             bool keyDownA = Input.GetKeyDown(KeyCode.A);
             bool keyDownD = Input.GetKeyDown(KeyCode.D);
             bool keyUpA = Input.GetKeyUp(KeyCode.A);
@@ -135,7 +127,7 @@ namespace LULUKA
             
             if (keyDownA)
             {
-                if (Time.time - lastTapTimeA < doubleTapTime && isHoldingA == false)
+                if (Time.time - lastTapTimeA < doubleTapTime && !isHoldingA)
                 {
                     isRunning = true;
                 }
@@ -145,7 +137,7 @@ namespace LULUKA
             
             if (keyDownD)
             {
-                if (Time.time - lastTapTimeD < doubleTapTime && isHoldingD == false)
+                if (Time.time - lastTapTimeD < doubleTapTime && !isHoldingD)
                 {
                     isRunning = true;
                 }
@@ -156,36 +148,16 @@ namespace LULUKA
             if (keyUpA)
             {
                 isHoldingA = false;
-                if (!isHoldingD)
-                {
-                    isRunning = false;
-                }
+                if (!isHoldingD) isRunning = false;
             }
             
             if (keyUpD)
             {
                 isHoldingD = false;
-                if (!isHoldingA)
-                {
-                    isRunning = false;
-                }
+                if (!isHoldingA) isRunning = false;
             }
             
-            horizontalInput = 0f;
-            
-            if (isHoldingA)
-            {
-                horizontalInput = -1f;
-            }
-            else if (isHoldingD)
-            {
-                horizontalInput = 1f;
-            }
-            
-            if (Input.GetKeyDown(KeyCode.W) && isGrounded && canJump)
-            {
-                DoJump();
-            }
+            horizontalInput = isHoldingA ? -1f : (isHoldingD ? 1f : 0f);
         }
         
         private void Move()
@@ -197,9 +169,7 @@ namespace LULUKA
             }
             
             float currentSpeed = isRunning ? runSpeed : walkSpeed;
-            float targetVelocityX = horizontalInput * currentSpeed;
-            
-            rb.linearVelocity = new Vector2(targetVelocityX, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(horizontalInput * currentSpeed, rb.linearVelocity.y);
             
             if (horizontalInput != 0)
             {
@@ -207,31 +177,20 @@ namespace LULUKA
             }
         }
         
-        private void DoJump()
+        private void Jump()
         {
             if (isTransforming) return;
-            
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             animator.SetTrigger(jumpHash);
-            canJump = false;
         }
         
         private void CheckGroundStatus()
         {
-            wasGrounded = isGrounded;
-            
-            if (groundCheck != null)
-            {
-                isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-            }
-            else
-            {
-                isGrounded = Mathf.Abs(rb.linearVelocity.y) < 0.1f;
-            }
+            bool wasGrounded = isGrounded;
+            isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
             
             if (!wasGrounded && isGrounded)
             {
-                canJump = true;
                 airAttackCount = 0;
             }
             
@@ -240,8 +199,7 @@ namespace LULUKA
         
         private void UpdateAnimation()
         {
-            float speedValue = Mathf.Abs(horizontalInput) > 0.1f ? 1f : 0f;
-            animator.SetFloat(speedHash, speedValue);
+            animator.SetFloat(speedHash, Mathf.Abs(horizontalInput) > 0.1f ? 1f : 0f);
             animator.SetBool(isRunningHash, isRunning);
             animator.SetFloat(velocityYHash, rb.linearVelocity.y);
         }
@@ -269,42 +227,8 @@ namespace LULUKA
             animator.SetLayerWeight(transformedLayerIndex, 1f);
         }
         
-        private void StartCharge()
-        {
-            isCharging = true;
-            animator.SetTrigger(attackHash);
-        }
-        
-        private void ReleaseAttack()
-        {
-            isCharging = false;
-            animator.SetTrigger(releaseAttackHash);
-        }
-        
-        private void AirAttack()
-        {
-            airAttackCount++;
-            animator.SetTrigger(attackHash);
-        }
-        
-        public void SetTransformed(bool transformed)
-        {
-            isTransformed = transformed;
-            animator.SetBool(isTransformedHash, transformed);
-            animator.SetLayerWeight(transformedLayerIndex, transformed ? 1f : 0f);
-        }
-        
-        public void TriggerJumpAction()
-        {
-            if (isGrounded && canJump)
-            {
-                DoJump();
-            }
-        }
-        
         public bool IsGrounded => isGrounded;
         public bool IsTransformed => isTransformed;
-        public int AirAttackCount => airAttackCount;
         
         private void OnDrawGizmosSelected()
         {
