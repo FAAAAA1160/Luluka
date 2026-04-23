@@ -91,6 +91,37 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &8313778370576704453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2741668361792284794}
+  m_Layer: 0
+  m_Name: GroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2741668361792284794
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8313778370576704453}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 877992414066687447}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8742168083127075881
 GameObject:
   m_ObjectHideFlags: 0
@@ -122,11 +153,12 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.933, y: 0.714, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2513523387378577945}
   - {fileID: 5968299853353069867}
+  - {fileID: 2741668361792284794}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &651522370225196128
@@ -174,8 +206,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1551769939
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -6153661400975947715, guid: df712767ff497b849bdac07b25b9b988, type: 3}
@@ -225,7 +257,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -236,7 +268,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!61 &955879127058653209
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -295,25 +327,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eaf1907df7ed98448ab8ecbb274d3983, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LULUKA.PlayerController
-  walkSpeed: 3
-  runSpeed: 6
-  jumpForce: 8
+  walkSpeed: 5
+  runSpeed: 10
+  jumpForce: 15
   doubleTapTime: 0.3
-  groundCheck: {fileID: 0}
+  groundCheck: {fileID: 2741668361792284794}
   groundCheckRadius: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
-  maxAirAttacks: 1
-  speedParam: Speed
-  isGroundedParam: IsGrounded
-  jumpParam: Jump
-  isRunningParam: IsRunning
-  velocityYParam: VelocityY
-  isTransformedParam: IsTransformed
-  transformParam: Transform
-  attackParam: Attack
-  releaseAttackParam: ReleaseAttack
+    m_Bits: 8
+  maxAirAttacks: 2
   transformedLayerIndex: 1
 --- !u!1 &9029807214511547032
 GameObject:

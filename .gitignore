@@ -2,6 +2,7 @@ Library/
 Logs/
 obj/
 Temp/
+PKG/
 /Assembly-CSharp.csproj
 /MCPForUnity.Editor.csproj
 /MCPForUnity.Runtime.csproj
