@@ -21,7 +21,7 @@ MonoBehaviour:
   attackCooldown: 2
   attackDamage: 10
   rangedAttackRange: 20
-  rangedAttackCooldown: 3
+  rangedAttackCooldown: 7
   projectilePrefab: {fileID: 7237571688453169407, guid: 842568b3b7b2ff94583425df322fd2ae, type: 3}
   canBeStomped: 0
   stompDamage: 50

@@ -7,12 +7,20 @@ namespace LULUKA
         [Header("BOSS特有设置")]
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField] private Transform projectileSpawnPoint;
-        [SerializeField] private float projectileSpeed = 5f;
+        [SerializeField] private float projectileSpeed = 3f;
         [SerializeField] private float rangedAttackChance = 0.3f;
+        
+        private bool isFacingRight = true;
+        private Vector3 originalSpawnPointLocalPos;
         
         protected override void Awake()
         {
             base.Awake();
+            
+            if (projectileSpawnPoint != null)
+            {
+                originalSpawnPointLocalPos = projectileSpawnPoint.localPosition;
+            }
             
             if (config == null)
             {
@@ -53,23 +61,36 @@ namespace LULUKA
         {
             lastRangedAttackTime = Time.time;
             
-            if (projectilePrefab == null || target == null) return;
+            if (projectilePrefab == null) return;
             
-            Vector3 spawnPosition = projectileSpawnPoint != null ? projectileSpawnPoint.position : transform.position;
+            Vector3 spawnPosition = projectileSpawnPoint != null 
+                ? projectileSpawnPoint.position 
+                : transform.position + new Vector3(isFacingRight ? 1f : -1f, 0.5f, 0f);
+            
             GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
             
-            Vector2 direction = (target.position - spawnPosition).normalized;
-            
-            var rb2d = projectile.GetComponent<Rigidbody2D>();
-            if (rb2d != null)
+            float directionToPlayer = 0f;
+            if (target != null)
             {
-                rb2d.linearVelocity = direction * projectileSpeed;
+                directionToPlayer = target.position.x > transform.position.x ? 1f : -1f;
+            }
+            else
+            {
+                directionToPlayer = isFacingRight ? 1f : -1f;
             }
             
-            var projectileScript = projectile.GetComponent<EnemyProjectile>();
-            if (projectileScript != null)
+            var steelRoll = projectile.GetComponent<SteelRollController>();
+            if (steelRoll != null)
             {
-                projectileScript.Initialize(config.attackDamage);
+                steelRoll.Initialize(directionToPlayer);
+            }
+            else
+            {
+                var rb2d = projectile.GetComponent<Rigidbody2D>();
+                if (rb2d != null)
+                {
+                    rb2d.linearVelocity = new Vector2(directionToPlayer * projectileSpeed, rb2d.linearVelocity.y);
+                }
             }
         }
         
@@ -83,6 +104,23 @@ namespace LULUKA
             return Random.value < rangedAttackChance;
         }
         
+        public new void Flip(bool facingRight)
+        {
+            base.Flip(facingRight);
+            
+            if (isFacingRight != facingRight)
+            {
+                isFacingRight = facingRight;
+                
+                if (projectileSpawnPoint != null)
+                {
+                    Vector3 newLocalPos = originalSpawnPointLocalPos;
+                    newLocalPos.x = Mathf.Abs(originalSpawnPointLocalPos.x) * (facingRight ? 1f : -1f);
+                    projectileSpawnPoint.localPosition = newLocalPos;
+                }
+            }
+        }
+        
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.CompareTag("Player"))
@@ -94,5 +132,7 @@ namespace LULUKA
                 }
             }
         }
+        
+        public bool IsFacingRight => isFacingRight;
     }
 }
