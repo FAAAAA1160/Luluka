@@ -10,6 +10,11 @@ namespace LULUKA
         [SerializeField] private float runSpeed = 6f;
         [SerializeField] private float jumpForce = 8f;
         
+        [Header("可变跳跃设置")]
+        [SerializeField] private float jumpHoldForce = 2f;
+        [SerializeField] private float maxJumpHoldTime = 0.5f;
+        [SerializeField] private float jumpHoldGravityScale = 0.5f;
+        
         [Header("双击奔跑设置")]
         [SerializeField] private float doubleTapTime = 0.3f;
         
@@ -23,6 +28,10 @@ namespace LULUKA
         
         [Header("动画层索引")]
         [SerializeField] private int transformedLayerIndex = 1;
+        
+        [Header("技能特效")]
+        [SerializeField] private ChargeEffectController chargeEffect;
+        [SerializeField] private TransformMagicCircleController transformMagicCircle;
         
         private Rigidbody2D rb;
         private Animator animator;
@@ -42,21 +51,37 @@ namespace LULUKA
         private bool isCharging;
         private int airAttackCount;
         
-        private readonly int  speedHash = Animator.StringToHash("Speed");
-        private readonly int  isGroundedHash = Animator.StringToHash("IsGrounded");
-        private readonly int  jumpHash = Animator.StringToHash("Jump");
-        private readonly int  isRunningHash = Animator.StringToHash("IsRunning");
-        private readonly int  velocityYHash = Animator.StringToHash("VelocityY");
-        private readonly int  isTransformedHash = Animator.StringToHash("IsTransformed");
-        private readonly int  transformHash = Animator.StringToHash("Transform");
-        private readonly int  attackHash = Animator.StringToHash("Attack");
-        private readonly int  releaseAttackHash = Animator.StringToHash("ReleaseAttack");
+        private bool isJumping;
+        private float jumpHoldTimer;
+        private float originalGravityScale;
+        
+        private readonly int speedHash = Animator.StringToHash("Speed");
+        private readonly int isGroundedHash = Animator.StringToHash("IsGrounded");
+        private readonly int jumpHash = Animator.StringToHash("Jump");
+        private readonly int isRunningHash = Animator.StringToHash("IsRunning");
+        private readonly int velocityYHash = Animator.StringToHash("VelocityY");
+        private readonly int isTransformedHash = Animator.StringToHash("IsTransformed");
+        private readonly int transformHash = Animator.StringToHash("Transform");
+        private readonly int attackHash = Animator.StringToHash("Attack");
+        private readonly int releaseAttackHash = Animator.StringToHash("ReleaseAttack");
         
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
             animator = GetComponent<Animator>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+            
+            originalGravityScale = rb.gravityScale;
+            
+            if (chargeEffect == null)
+            {
+                chargeEffect = GetComponentInChildren<ChargeEffectController>();
+            }
+            
+            if (transformMagicCircle == null)
+            {
+                transformMagicCircle = GetComponentInChildren<TransformMagicCircleController>();
+            }
         }
         
         private void Start()
@@ -69,6 +94,7 @@ namespace LULUKA
             HandleInput();
             CheckGroundStatus();
             UpdateAnimation();
+            UpdateJumpHold();
         }
         
         private void FixedUpdate()
@@ -102,13 +128,11 @@ namespace LULUKA
             {
                 if (Input.GetKeyDown(KeyCode.J) && !isCharging)
                 {
-                    isCharging = true;
-                    animator.SetTrigger(attackHash);
+                    StartCharge();
                 }
                 else if (Input.GetKeyUp(KeyCode.J) && isCharging)
                 {
-                    isCharging = false;
-                    animator.SetTrigger(releaseAttackHash);
+                    ReleaseAttack();
                 }
             }
             else if (Input.GetKeyDown(KeyCode.J) && airAttackCount < maxAirAttacks)
@@ -180,8 +204,40 @@ namespace LULUKA
         private void Jump()
         {
             if (isTransforming) return;
+            
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             animator.SetTrigger(jumpHash);
+            
+            isJumping = true;
+            jumpHoldTimer = 0f;
+            rb.gravityScale = jumpHoldGravityScale;
+        }
+        
+        private void UpdateJumpHold()
+        {
+            if (isJumping)
+            {
+                if (Input.GetKey(KeyCode.W) && jumpHoldTimer < maxJumpHoldTime)
+                {
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y + jumpHoldForce * Time.deltaTime);
+                    jumpHoldTimer += Time.deltaTime;
+                }
+                else
+                {
+                    EndJumpHold();
+                }
+            }
+            
+            if (isJumping && isGrounded && jumpHoldTimer > 0.1f)
+            {
+                EndJumpHold();
+            }
+        }
+        
+        private void EndJumpHold()
+        {
+            isJumping = false;
+            rb.gravityScale = originalGravityScale;
         }
         
         private void CheckGroundStatus()
@@ -192,6 +248,7 @@ namespace LULUKA
             if (!wasGrounded && isGrounded)
             {
                 airAttackCount = 0;
+                EndJumpHold();
             }
             
             animator.SetBool(isGroundedHash, isGrounded);
@@ -216,6 +273,11 @@ namespace LULUKA
             {
                 isTransforming = true;
                 animator.SetTrigger(transformHash);
+                
+                if (transformMagicCircle != null)
+                {
+                    transformMagicCircle.StartTransform();
+                }
             }
         }
         
@@ -225,10 +287,39 @@ namespace LULUKA
             isTransforming = false;
             animator.SetBool(isTransformedHash, true);
             animator.SetLayerWeight(transformedLayerIndex, 1f);
+            
+            if (transformMagicCircle != null)
+            {
+                transformMagicCircle.EndTransform();
+            }
+        }
+        
+        private void StartCharge()
+        {
+            isCharging = true;
+            animator.SetTrigger(attackHash);
+            
+            if (chargeEffect != null)
+            {
+                chargeEffect.SetCharacterFacing(!spriteRenderer.flipX);
+                chargeEffect.StartCharge();
+            }
+        }
+        
+        private void ReleaseAttack()
+        {
+            isCharging = false;
+            animator.SetTrigger(releaseAttackHash);
+            
+            if (chargeEffect != null)
+            {
+                chargeEffect.EndCharge();
+            }
         }
         
         public bool IsGrounded => isGrounded;
         public bool IsTransformed => isTransformed;
+        public bool IsFacingRight => !spriteRenderer.flipX;
         
         private void OnDrawGizmosSelected()
         {
