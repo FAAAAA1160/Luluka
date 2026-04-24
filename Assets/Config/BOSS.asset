@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7b45bb17a2852b4a84ac52044d08fb4, type: 3}
+  m_Name: BOSS
+  m_EditorClassIdentifier: Assembly-CSharp::LULUKA.EnemyConfig
+  maxHealth: 100
+  moveSpeed: 2
+  patrolSpeed: 1
+  detectionRange: 20
+  attackRange: 3
+  patrolRange: 3
+  attackCooldown: 2
+  attackDamage: 10
+  rangedAttackRange: 20
+  rangedAttackCooldown: 3
+  projectilePrefab: {fileID: 7237571688453169407, guid: 842568b3b7b2ff94583425df322fd2ae, type: 3}
+  canBeStomped: 0
+  stompDamage: 50
+  scoreValue: 100

@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 6028436268804069723}
   - component: {fileID: 7424489125531138212}
   - component: {fileID: 9153320372516783677}
+  - component: {fileID: -6269209294598462535}
   m_Layer: 0
   m_Name: "\u72AF\u4EBA\u602A1"
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -128,7 +129,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 50
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 1
@@ -189,3 +190,17 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.04, y: 1.56}
   m_EdgeRadius: 0
+--- !u!114 &-6269209294598462535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3141482195119326171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6a1405fb437ac14d9f144a01d18df86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LULUKA.MinionEnemy
+  config: {fileID: 0}
+  stompBounceForce: 5

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace LULUKA
 {
     [RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SpriteRenderer))]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MonoBehaviour, IDamageable
     {
         [Header("移动参数")]
         [SerializeField] private float walkSpeed = 3f;
@@ -14,6 +14,9 @@ namespace LULUKA
         [SerializeField] private float jumpHoldForce = 2f;
         [SerializeField] private float maxJumpHoldTime = 0.5f;
         [SerializeField] private float jumpHoldGravityScale = 0.5f;
+        
+        [Header("生命值")]
+        [SerializeField] private float maxHealth = 100f;
         
         [Header("双击奔跑设置")]
         [SerializeField] private float doubleTapTime = 0.3f;
@@ -55,6 +58,10 @@ namespace LULUKA
         private float jumpHoldTimer;
         private float originalGravityScale;
         
+        private float currentHealth;
+        private bool isInvincible;
+        private float invincibleTimer;
+        
         private readonly int speedHash = Animator.StringToHash("Speed");
         private readonly int isGroundedHash = Animator.StringToHash("IsGrounded");
         private readonly int jumpHash = Animator.StringToHash("Jump");
@@ -64,6 +71,11 @@ namespace LULUKA
         private readonly int transformHash = Animator.StringToHash("Transform");
         private readonly int attackHash = Animator.StringToHash("Attack");
         private readonly int releaseAttackHash = Animator.StringToHash("ReleaseAttack");
+        private readonly int hitHash = Animator.StringToHash("Hit");
+        private readonly int dieHash = Animator.StringToHash("Die");
+        
+        public float CurrentHealth => currentHealth;
+        public float MaxHealth => maxHealth;
         
         private void Awake()
         {
@@ -72,6 +84,7 @@ namespace LULUKA
             spriteRenderer = GetComponent<SpriteRenderer>();
             
             originalGravityScale = rb.gravityScale;
+            currentHealth = maxHealth;
             
             if (chargeEffect == null)
             {
@@ -95,6 +108,7 @@ namespace LULUKA
             CheckGroundStatus();
             UpdateAnimation();
             UpdateJumpHold();
+            UpdateInvincibility();
         }
         
         private void FixedUpdate()
@@ -261,6 +275,18 @@ namespace LULUKA
             animator.SetFloat(velocityYHash, rb.linearVelocity.y);
         }
         
+        private void UpdateInvincibility()
+        {
+            if (isInvincible)
+            {
+                invincibleTimer -= Time.deltaTime;
+                if (invincibleTimer <= 0f)
+                {
+                    isInvincible = false;
+                }
+            }
+        }
+        
         private void ToggleTransform()
         {
             if (isTransformed)
@@ -315,6 +341,28 @@ namespace LULUKA
             {
                 chargeEffect.EndCharge();
             }
+        }
+        
+        public void TakeDamage(float damage)
+        {
+            if (isInvincible) return;
+            
+            currentHealth -= damage;
+            animator.SetTrigger(hitHash);
+            
+            isInvincible = true;
+            invincibleTimer = 1f;
+            
+            if (currentHealth <= 0f)
+            {
+                Die();
+            }
+        }
+        
+        private void Die()
+        {
+            animator.SetTrigger(dieHash);
+            enabled = false;
         }
         
         public bool IsGrounded => isGrounded;
