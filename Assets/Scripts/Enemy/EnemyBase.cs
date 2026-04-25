@@ -3,7 +3,7 @@ using UnityEngine;
 namespace LULUKA
 {
     [RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(Collider2D))]
-    public abstract class EnemyBase : MonoBehaviour
+    public abstract class EnemyBase : MonoBehaviour, IDamageable
     {
         [Header("配置")]
         [SerializeField] protected EnemyConfig config;
@@ -23,6 +23,7 @@ namespace LULUKA
         public EnemyConfig Config => config;
         public Animator Animator => animator;
         public Transform Target => target;
+        public float CurrentHealth => currentHealth;
         
         protected virtual void Awake()
         {
@@ -84,7 +85,7 @@ namespace LULUKA
         
         public void StopMovement()
         {
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            rb.linearVelocity = Vector2.zero;
         }
         
         public void Flip(bool facingRight)
@@ -136,12 +137,21 @@ namespace LULUKA
             }
         }
         
+        public virtual void DisablePhysics()
+        {
+            if (rb != null)
+            {
+                rb.simulated = false;
+            }
+        }
+        
         public virtual void OnDeathComplete()
         {
             Destroy(gameObject);
         }
         
         public bool CanBeStomped => config != null && config.canBeStomped;
-        public float CurrentHealth => currentHealth;
+        
+        public virtual bool IsFacingRight => !spriteRenderer.flipX;
     }
 }

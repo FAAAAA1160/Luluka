@@ -25,4 +25,5 @@ MonoBehaviour:
   projectilePrefab: {fileID: 0}
   canBeStomped: 1
   stompDamage: 50
+  deathDestroyTime: 1.5
   scoreValue: 100

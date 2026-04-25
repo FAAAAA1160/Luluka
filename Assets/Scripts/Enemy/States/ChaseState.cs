@@ -5,12 +5,15 @@ namespace LULUKA
     public class ChaseState : EnemyState
     {
         private Transform target;
+        private float rangedAttackCheckTimer;
+        private float rangedAttackCheckInterval = 0.5f;
         
         public ChaseState(EnemyBase enemy) : base(enemy) { }
         
         public override void Enter()
         {
             target = enemy.Target;
+            rangedAttackCheckTimer = 0f;
             
             if (animator != null)
             {
@@ -34,12 +37,23 @@ namespace LULUKA
                 return;
             }
             
-            if (enemy is BossEnemy boss && distanceToTarget <= enemy.Config.rangedAttackRange)
+            if (enemy is BossEnemy boss)
             {
-                if (boss.CanRangedAttack())
+                rangedAttackCheckTimer += Time.deltaTime;
+                
+                if (distanceToTarget <= enemy.Config.rangedAttackRange && 
+                    distanceToTarget > enemy.Config.attackRange)
                 {
-                    enemy.ChangeState(new RangedAttackState(enemy));
-                    return;
+                    if (rangedAttackCheckTimer >= rangedAttackCheckInterval)
+                    {
+                        rangedAttackCheckTimer = 0f;
+                        
+                        if (boss.CanRangedAttack())
+                        {
+                            enemy.ChangeState(new RangedAttackState(enemy));
+                            return;
+                        }
+                    }
                 }
             }
         }

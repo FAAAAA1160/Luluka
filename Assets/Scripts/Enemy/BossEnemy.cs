@@ -8,7 +8,7 @@ namespace LULUKA
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField] private Transform projectileSpawnPoint;
         [SerializeField] private float projectileSpeed = 3f;
-        [SerializeField] private float rangedAttackChance = 0.3f;
+        [SerializeField] private float rangedAttackChance = 0.5f;
         
         private bool isFacingRight = true;
         private Vector3 originalSpawnPointLocalPos;
@@ -32,7 +32,7 @@ namespace LULUKA
                 config.attackRange = 1.5f;
                 config.rangedAttackRange = 6f;
                 config.patrolRange = 4f;
-                config.attackCooldown = 2f;
+                config.attackCooldown = 1.5f;
                 config.rangedAttackCooldown = 3f;
                 config.attackDamage = 20f;
                 config.canBeStomped = false;

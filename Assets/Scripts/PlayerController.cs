@@ -18,6 +18,12 @@ namespace LULUKA
         [Header("生命值")]
         [SerializeField] private float maxHealth = 100f;
         
+        [Header("受击设置")]
+        [SerializeField] private float knockbackForce = 5f;
+        [SerializeField] private float knockbackDuration = 0.2f;
+        [SerializeField] private float flashDuration = 1f;
+        [SerializeField] private float flashInterval = 0.1f;
+        
         [Header("双击奔跑设置")]
         [SerializeField] private float doubleTapTime = 0.3f;
         
@@ -42,6 +48,7 @@ namespace LULUKA
         
         private float horizontalInput;
         private bool isGrounded;
+        private bool wasGrounded;
         private bool isRunning;
         
         private float lastTapTimeA;
@@ -62,6 +69,15 @@ namespace LULUKA
         private bool isInvincible;
         private float invincibleTimer;
         
+        private bool wasHoldingChargeKey;
+        
+        private bool isKnockback;
+        private float knockbackTimer;
+        
+        private bool isFlashing;
+        private float flashTimer;
+        private float flashCounter;
+        
         private readonly int speedHash = Animator.StringToHash("Speed");
         private readonly int isGroundedHash = Animator.StringToHash("IsGrounded");
         private readonly int jumpHash = Animator.StringToHash("Jump");
@@ -69,7 +85,7 @@ namespace LULUKA
         private readonly int velocityYHash = Animator.StringToHash("VelocityY");
         private readonly int isTransformedHash = Animator.StringToHash("IsTransformed");
         private readonly int transformHash = Animator.StringToHash("Transform");
-        private readonly int attackHash = Animator.StringToHash("Attack");
+        private readonly int isChargingHash = Animator.StringToHash("IsCharging");
         private readonly int releaseAttackHash = Animator.StringToHash("ReleaseAttack");
         private readonly int hitHash = Animator.StringToHash("Hit");
         private readonly int dieHash = Animator.StringToHash("Die");
@@ -109,6 +125,8 @@ namespace LULUKA
             UpdateAnimation();
             UpdateJumpHold();
             UpdateInvincibility();
+            UpdateFlash();
+            UpdateKnockback();
         }
         
         private void FixedUpdate()
@@ -130,7 +148,7 @@ namespace LULUKA
             
             HandleMovementInput();
             
-            if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+            if (Input.GetKeyDown(KeyCode.W) && isGrounded && !isCharging)
             {
                 Jump();
             }
@@ -138,22 +156,31 @@ namespace LULUKA
         
         private void HandleAttackInput()
         {
+            bool isHoldingJ = Input.GetKey(KeyCode.J);
+            bool pressedJ = Input.GetKeyDown(KeyCode.J);
+            bool releasedJ = Input.GetKeyUp(KeyCode.J);
+            
             if (isGrounded)
             {
-                if (Input.GetKeyDown(KeyCode.J) && !isCharging)
+                if (pressedJ && !isCharging)
                 {
                     StartCharge();
                 }
-                else if (Input.GetKeyUp(KeyCode.J) && isCharging)
+                else if (releasedJ && isCharging)
                 {
                     ReleaseAttack();
                 }
             }
-            else if (Input.GetKeyDown(KeyCode.J) && airAttackCount < maxAirAttacks)
+            else
             {
-                airAttackCount++;
-                animator.SetTrigger(attackHash);
+                if (pressedJ && airAttackCount < maxAirAttacks)
+                {
+                    airAttackCount++;
+                    animator.SetTrigger("AirAttack");
+                }
             }
+            
+            wasHoldingChargeKey = isHoldingJ;
         }
         
         private void HandleMovementInput()
@@ -200,7 +227,7 @@ namespace LULUKA
         
         private void Move()
         {
-            if (isTransforming || isCharging)
+            if (isTransforming || isCharging || isKnockback)
             {
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
                 return;
@@ -217,7 +244,7 @@ namespace LULUKA
         
         private void Jump()
         {
-            if (isTransforming) return;
+            if (isTransforming || isCharging || isKnockback) return;
             
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             animator.SetTrigger(jumpHash);
@@ -256,13 +283,18 @@ namespace LULUKA
         
         private void CheckGroundStatus()
         {
-            bool wasGrounded = isGrounded;
+            wasGrounded = isGrounded;
             isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
             
             if (!wasGrounded && isGrounded)
             {
                 airAttackCount = 0;
                 EndJumpHold();
+                
+                if (isTransformed && wasHoldingChargeKey && !isCharging)
+                {
+                    StartCharge();
+                }
             }
             
             animator.SetBool(isGroundedHash, isGrounded);
@@ -283,6 +315,35 @@ namespace LULUKA
                 if (invincibleTimer <= 0f)
                 {
                     isInvincible = false;
+                    isFlashing = false;
+                    spriteRenderer.enabled = true;
+                }
+            }
+        }
+        
+        private void UpdateFlash()
+        {
+            if (isFlashing)
+            {
+                flashTimer += Time.deltaTime;
+                
+                if (flashTimer >= flashInterval)
+                {
+                    flashTimer = 0f;
+                    spriteRenderer.enabled = !spriteRenderer.enabled;
+                    flashCounter += flashInterval;
+                }
+            }
+        }
+        
+        private void UpdateKnockback()
+        {
+            if (isKnockback)
+            {
+                knockbackTimer -= Time.deltaTime;
+                if (knockbackTimer <= 0f)
+                {
+                    isKnockback = false;
                 }
             }
         }
@@ -323,7 +384,7 @@ namespace LULUKA
         private void StartCharge()
         {
             isCharging = true;
-            animator.SetTrigger(attackHash);
+            animator.SetBool(isChargingHash, true);
             
             if (chargeEffect != null)
             {
@@ -334,8 +395,24 @@ namespace LULUKA
         
         private void ReleaseAttack()
         {
+            if (!isCharging) return;
+            
             isCharging = false;
+            animator.SetBool(isChargingHash, false);
             animator.SetTrigger(releaseAttackHash);
+            
+            if (chargeEffect != null)
+            {
+                chargeEffect.EndCharge();
+            }
+        }
+        
+        private void ForceReleaseCharge()
+        {
+            if (!isCharging) return;
+            
+            isCharging = false;
+            animator.SetBool(isChargingHash, false);
             
             if (chargeEffect != null)
             {
@@ -347,11 +424,26 @@ namespace LULUKA
         {
             if (isInvincible) return;
             
+            if (isCharging)
+            {
+                ForceReleaseCharge();
+            }
+            
             currentHealth -= damage;
             animator.SetTrigger(hitHash);
             
             isInvincible = true;
             invincibleTimer = 1f;
+            
+            isFlashing = true;
+            flashTimer = 0f;
+            flashCounter = 0f;
+            
+            isKnockback = true;
+            knockbackTimer = knockbackDuration;
+            
+            float knockbackDirection = spriteRenderer.flipX ? 1f : -1f;
+            rb.linearVelocity = new Vector2(knockbackDirection * knockbackForce, rb.linearVelocity.y + 2f);
             
             if (currentHealth <= 0f)
             {
@@ -362,6 +454,8 @@ namespace LULUKA
         private void Die()
         {
             animator.SetTrigger(dieHash);
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = false;
             enabled = false;
         }
         

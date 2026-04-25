@@ -6,6 +6,7 @@ namespace LULUKA
     {
         private float attackTimer;
         private bool hasAttacked;
+        private float animationDuration = 0.8f;
         
         public RangedAttackState(EnemyBase enemy) : base(enemy) { }
         
@@ -36,7 +37,7 @@ namespace LULUKA
                 }
             }
             
-            if (attackTimer >= enemy.Config.rangedAttackCooldown)
+            if (attackTimer >= animationDuration)
             {
                 if (enemy.IsPlayerInRange(enemy.Config.detectionRange))
                 {

@@ -5,30 +5,19 @@ namespace LULUKA
     public class DeathState : EnemyState
     {
         private float deathTimer;
-        private float deathDuration = 1f;
         
         public DeathState(EnemyBase enemy) : base(enemy) { }
         
         public override void Enter()
         {
+            deathTimer = 0f;
             enemy.StopMovement();
             enemy.DisableCollider();
+            enemy.DisablePhysics();
             
             if (animator != null)
             {
                 animator.SetTrigger(deathHash);
-            }
-            
-            deathTimer = 0f;
-            
-            AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
-            foreach (var clip in clips)
-            {
-                if (clip.name.Contains("死亡") || clip.name.Contains("Death"))
-                {
-                    deathDuration = clip.length;
-                    break;
-                }
             }
         }
         
@@ -36,7 +25,7 @@ namespace LULUKA
         {
             deathTimer += Time.deltaTime;
             
-            if (deathTimer >= deathDuration)
+            if (deathTimer >= enemy.Config.deathDestroyTime)
             {
                 enemy.OnDeathComplete();
             }

@@ -28,6 +28,9 @@ namespace LULUKA
         public bool canBeStomped = true;
         public float stompDamage = 50f;
         
+        [Header("死亡设置")]
+        public float deathDestroyTime = 1f;
+        
         [Header("掉落")]
         public int scoreValue = 100;
     }

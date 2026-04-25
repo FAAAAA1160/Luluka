@@ -16,13 +16,14 @@ MonoBehaviour:
   moveSpeed: 2
   patrolSpeed: 1
   detectionRange: 20
-  attackRange: 3
-  patrolRange: 3
+  attackRange: 5
+  patrolRange: 20
   attackCooldown: 2
-  attackDamage: 10
+  attackDamage: 20
   rangedAttackRange: 20
   rangedAttackCooldown: 7
   projectilePrefab: {fileID: 7237571688453169407, guid: 842568b3b7b2ff94583425df322fd2ae, type: 3}
   canBeStomped: 0
   stompDamage: 50
+  deathDestroyTime: 3
   scoreValue: 100
