@@ -14,6 +14,7 @@ namespace LULUKA
         {
             target = enemy.Target;
             rangedAttackCheckTimer = 0f;
+            enemy.IsChasing = true;
             
             if (animator != null)
             {
@@ -65,6 +66,11 @@ namespace LULUKA
             float direction = target.position.x > enemy.transform.position.x ? 1f : -1f;
             enemy.Flip(direction > 0f);
             enemy.Move(direction * enemy.Config.moveSpeed);
+        }
+        
+        public override void Exit()
+        {
+            enemy.IsChasing = false;
         }
     }
 }

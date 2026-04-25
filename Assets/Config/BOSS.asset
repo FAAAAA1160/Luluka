@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7b45bb17a2852b4a84ac52044d08fb4, type: 3}
   m_Name: BOSS
   m_EditorClassIdentifier: Assembly-CSharp::LULUKA.EnemyConfig
-  maxHealth: 100
+  maxHealth: 1000
   moveSpeed: 2
   patrolSpeed: 1
   detectionRange: 20

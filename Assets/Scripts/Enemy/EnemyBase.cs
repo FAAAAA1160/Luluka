@@ -153,5 +153,7 @@ namespace LULUKA
         public bool CanBeStomped => config != null && config.canBeStomped;
         
         public virtual bool IsFacingRight => !spriteRenderer.flipX;
+        
+        public bool IsChasing { get; set; }
     }
 }
