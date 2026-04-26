@@ -147,7 +147,19 @@ namespace LULUKA
         
         public virtual void OnDeathComplete()
         {
+            GivePlayerEnergy();
             Destroy(gameObject);
+        }
+        
+        private void GivePlayerEnergy()
+        {
+            if (target == null) return;
+            
+            var player = target.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.AddEnergyFromEnemy();
+            }
         }
         
         public bool CanBeStomped => config != null && config.canBeStomped;

@@ -18,6 +18,13 @@ namespace LULUKA
         [Header("生命值")]
         [SerializeField] private float maxHealth = 100f;
         
+        [Header("能量设置")]
+        [SerializeField] private float maxEnergy = 100f;
+        [SerializeField] private float energyRegenRate = 5f;
+        [SerializeField] private float energyDrainRate = 10f;
+        [SerializeField] private float energyFromEnemy = 20f;
+        [SerializeField] private float energyFromItem = 30f;
+        
         [Header("受击设置")]
         [SerializeField] private float knockbackForce = 5f;
         [SerializeField] private float knockbackDuration = 0.2f;
@@ -66,6 +73,7 @@ namespace LULUKA
         private float originalGravityScale;
         
         private float currentHealth;
+        private float currentEnergy;
         private bool isInvincible;
         private float invincibleTimer;
         
@@ -92,6 +100,8 @@ namespace LULUKA
         
         public float CurrentHealth => currentHealth;
         public float MaxHealth => maxHealth;
+        public float CurrentEnergy => currentEnergy;
+        public float MaxEnergy => maxEnergy;
         
         private void Awake()
         {
@@ -101,6 +111,7 @@ namespace LULUKA
             
             originalGravityScale = rb.gravityScale;
             currentHealth = maxHealth;
+            currentEnergy = 0f;
             
             if (chargeEffect == null)
             {
@@ -127,6 +138,7 @@ namespace LULUKA
             UpdateInvincibility();
             UpdateFlash();
             UpdateKnockback();
+            UpdateEnergy();
         }
         
         private void FixedUpdate()
@@ -348,6 +360,28 @@ namespace LULUKA
             }
         }
         
+        private void UpdateEnergy()
+        {
+            if (isTransformed)
+            {
+                currentEnergy -= energyDrainRate * Time.deltaTime;
+                
+                if (currentEnergy <= 0f)
+                {
+                    currentEnergy = 0f;
+                    ForceCancelTransform();
+                }
+            }
+            else
+            {
+                currentEnergy += energyRegenRate * Time.deltaTime;
+                if (currentEnergy > maxEnergy)
+                {
+                    currentEnergy = maxEnergy;
+                }
+            }
+        }
+        
         private void ToggleTransform()
         {
             if (isTransformed)
@@ -358,6 +392,8 @@ namespace LULUKA
             }
             else
             {
+                if (currentEnergy < maxEnergy) return;
+                
                 isTransforming = true;
                 animator.SetTrigger(transformHash);
                 
@@ -366,6 +402,13 @@ namespace LULUKA
                     transformMagicCircle.StartTransform();
                 }
             }
+        }
+        
+        private void ForceCancelTransform()
+        {
+            isTransformed = false;
+            animator.SetBool(isTransformedHash, false);
+            animator.SetLayerWeight(transformedLayerIndex, 0f);
         }
         
         public void OnTransformComplete()
@@ -451,9 +494,29 @@ namespace LULUKA
             }
         }
         
+        public void AddEnergy(float amount)
+        {
+            currentEnergy += amount;
+            if (currentEnergy > maxEnergy)
+            {
+                currentEnergy = maxEnergy;
+            }
+        }
+        
+        public void AddEnergyFromEnemy()
+        {
+            AddEnergy(energyFromEnemy);
+        }
+        
+        public void AddEnergyFromItem()
+        {
+            AddEnergy(energyFromItem);
+        }
+        
         private void Die()
         {
             animator.SetTrigger(dieHash);
+            GameManager.Instance?.LoseGame();
             rb.linearVelocity = Vector2.zero;
             rb.simulated = false;
             enabled = false;

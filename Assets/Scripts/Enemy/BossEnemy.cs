@@ -39,6 +39,12 @@ namespace LULUKA
             }
         }
         
+        protected override void Die()
+        {
+            base.Die();
+            GameManager.Instance?.WinGame();
+        }
+        
         public override void PerformAttack()
         {
             base.PerformAttack();
